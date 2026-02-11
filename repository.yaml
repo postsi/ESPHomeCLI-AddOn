@@ -1,0 +1,4 @@
+# https://developers.home-assistant.io/docs/add-ons/repository
+name: ESPHomeCLI AddOn
+url: https://github.com/postsi/ESPHomeCLI-AddOn
+maintainer: postsi

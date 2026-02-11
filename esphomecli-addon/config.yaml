@@ -1,0 +1,23 @@
+# ESPHomeCLI AddOn - Exposes ESPHome CLI via web API
+# https://developers.home-assistant.io/docs/add-ons/configuration
+# version: required by HA; Supervisor uses it as the Docker image tag (e.g. image:1.0.0)
+name: ESPHome CLI
+description: Expose ESPHome CLI through a web API. Validate, compile, and flash from pasted YAML or from other addons/integrations. Jobs run asynchronously with a sidebar UI.
+version: "1.0.0"
+slug: esphomecli-addon
+url: https://github.com/postsi/ESPHomeCLI-AddOn
+arch:
+  - amd64
+  - aarch64
+init: false
+ingress: true
+ingress_port: 8099
+ingress_entry: "/"
+panel_icon: mdi:console
+panel_title: ESPHome CLI
+auth_api: true
+ports:
+  8099/tcp: null
+options: {}
+schema: {}
+image: ghcr.io/postsi/esphomecli-addon

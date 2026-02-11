@@ -1,0 +1,9 @@
+# Build from ESPHome image (has esphome CLI + Python)
+# https://developers.home-assistant.io/docs/add-ons/build
+# Pin a specific ESPHome version; update when needed.
+build_from:
+  amd64: ghcr.io/esphome/esphome:2024.6.0b2
+  aarch64: ghcr.io/esphome/esphome:2024.6.0b2
+  armv7: ghcr.io/esphome/esphome:2024.6.0b2
+  armhf: ghcr.io/esphome/esphome:2024.6.0b2
+  i386: ghcr.io/esphome/esphome:2024.6.0b2

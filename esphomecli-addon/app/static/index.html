@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESPHome CLI</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --error: #f85149;
+      --warn: #d29922;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'DM Sans', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+    h1 { font-size: 1.5rem; font-weight: 600; margin: 0 0 1rem 0; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 { font-size: 0.95rem; font-weight: 600; margin: 0 0 0.75rem 0; color: var(--text-muted); }
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      padding: 0.75rem;
+      font-family: ui-monospace, monospace;
+      font-size: 13px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      resize: vertical;
+    }
+    textarea::placeholder { color: var(--text-muted); }
+    .row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem; }
+    label { font-size: 0.875rem; color: var(--text-muted); min-width: 80px; }
+    input[type="text"] {
+      flex: 1;
+      min-width: 160px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: inherit;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      background: var(--surface);
+      color: var(--text);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn:hover { background: var(--border); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-success { background: var(--success); border-color: var(--success); color: #fff; }
+    .btn-danger { background: var(--error); border-color: var(--error); color: #fff; }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+    .status-msg { font-size: 0.875rem; margin-top: 0.5rem; padding: 0.5rem; border-radius: 6px; }
+    .status-msg.success { background: rgba(63, 185, 80, 0.15); color: var(--success); }
+    .status-msg.error { background: rgba(248, 81, 73, 0.15); color: var(--error); }
+    .jobs-list { list-style: none; padding: 0; margin: 0; }
+    .job-item {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      overflow: hidden;
+    }
+    .job-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.6rem 0.75rem;
+      cursor: pointer;
+      background: var(--bg);
+    }
+    .job-header:hover { background: var(--surface); }
+    .job-id { font-family: ui-monospace, monospace; font-size: 0.8rem; color: var(--text-muted); }
+    .job-type { font-weight: 500; font-size: 0.875rem; }
+    .job-badge {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+    .job-badge.pending { background: var(--text-muted); color: var(--bg); }
+    .job-badge.running { background: var(--warn); color: #000; }
+    .job-badge.success { background: var(--success); color: #000; }
+    .job-badge.failed { background: var(--error); color: #fff; }
+    .job-logs {
+      padding: 0.75rem 1rem;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 280px;
+      overflow-y: auto;
+      color: var(--text-muted);
+    }
+    .job-logs:empty::before { content: 'No output yet.'; color: var(--text-muted); }
+    .empty-jobs { color: var(--text-muted); font-size: 0.875rem; padding: 1rem; text-align: center; }
+    .pulse { animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: 0.6; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ESPHome CLI</h1>
+    <p style="color: var(--text-muted); font-size: 0.875rem; margin: 0 0 1rem 0;">
+      Paste YAML below to validate, build, or flash. Jobs run asynchronously.
+    </p>
+
+    <div class="card">
+      <h2>Configuration YAML</h2>
+      <textarea id="yaml" placeholder="Paste your ESPHome YAML configuration here..."></textarea>
+      <div class="row" style="margin-top: 0.75rem;">
+        <label for="device">Device (flash)</label>
+        <input type="text" id="device" placeholder="e.g. 192.168.1.10 or /dev/ttyUSB0">
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-validate">Validate</button>
+        <button type="button" class="btn btn-primary" id="btn-compile">Build</button>
+        <button type="button" class="btn btn-success" id="btn-upload">Flash</button>
+      </div>
+      <div id="validate-status" class="status-msg" style="display: none;"></div>
+    </div>
+
+    <div class="card">
+      <h2>Jobs</h2>
+      <ul class="jobs-list" id="jobs-list"></ul>
+      <div class="empty-jobs" id="empty-jobs">No jobs yet. Run Validate, Build, or Flash above.</div>
+    </div>
+  </div>
+
+  <script>
+    const yamlEl = document.getElementById('yaml');
+    const deviceEl = document.getElementById('device');
+    const btnValidate = document.getElementById('btn-validate');
+    const btnCompile = document.getElementById('btn-compile');
+    const btnUpload = document.getElementById('btn-upload');
+    const validateStatus = document.getElementById('validate-status');
+    const jobsList = document.getElementById('jobs-list');
+    const emptyJobs = document.getElementById('empty-jobs');
+
+    function api(path, options = {}) {
+      const url = path.startsWith('/') ? path : '/' + path;
+      return fetch(url, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.headers || {}),
+        },
+      });
+    }
+
+    function showValidateStatus(ok, msg) {
+      validateStatus.style.display = 'block';
+      validateStatus.textContent = msg;
+      validateStatus.className = 'status-msg ' + (ok ? 'success' : 'error');
+    }
+
+    async function doValidate() {
+      const yaml = yamlEl.value.trim();
+      if (!yaml) { showValidateStatus(false, 'Paste YAML first.'); return; }
+      showValidateStatus(true, 'Validating…');
+      try {
+        const r = await api('/api/validate', { method: 'POST', body: JSON.stringify({ yaml }) });
+        const data = await r.json();
+        if (data.valid) showValidateStatus(true, 'Configuration is valid.');
+        else showValidateStatus(false, data.error || data.stderr || 'Validation failed.');
+      } catch (e) {
+        showValidateStatus(false, e.message || 'Request failed.');
+      }
+    }
+
+    async function startJob(method, body) {
+      const yaml = yamlEl.value.trim();
+      if (!yaml) { alert('Paste YAML first.'); return; }
+      const payload = { yaml, ...body };
+      try {
+        const r = await api('/api/' + method, { method: 'POST', body: JSON.stringify(payload) });
+        const data = await r.json();
+        if (data.job_id) { addJobRow(data.job_id, method); refreshJobs(); startPolling(); }
+        else alert(data.detail || 'Failed to start job.');
+      } catch (e) {
+        alert(e.message || 'Request failed.');
+      }
+    }
+
+    function addJobRow(jobId, type) {
+      const li = document.createElement('li');
+      li.className = 'job-item';
+      li.dataset.jobId = jobId;
+      li.innerHTML = `
+        <div class="job-header">
+          <span class="job-type">${type}</span>
+          <span class="job-id">${jobId.slice(0, 8)}…</span>
+          <span class="job-badge pending">pending</span>
+        </div>
+        <pre class="job-logs"></pre>
+      `;
+      jobsList.appendChild(li);
+      emptyJobs.style.display = 'none';
+    }
+
+    let pollTimer = null;
+    function startPolling() {
+      if (pollTimer) return;
+      pollTimer = setInterval(refreshJobs, 2000);
+    }
+
+    async function refreshJobs() {
+      try {
+        const r = await api('/api/jobs');
+        const data = await r.json();
+        const list = data.jobs || [];
+        list.forEach(job => {
+          let li = document.querySelector(`[data-job-id="${job.job_id}"]`);
+          if (!li) {
+            addJobRow(job.job_id, job.type);
+            li = document.querySelector(`[data-job-id="${job.job_id}"]`);
+          }
+          const badge = li?.querySelector('.job-badge');
+          const logsEl = li?.querySelector('.job-logs');
+          if (badge) {
+            badge.textContent = job.status;
+            badge.className = 'job-badge ' + job.status;
+            if (job.status === 'running') badge.classList.add('pulse');
+          }
+          if (logsEl) logsEl.textContent = ''; // will fill from detail
+        });
+        const running = list.some(j => j.status === 'pending' || j.status === 'running');
+        if (!running && pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+        for (const job of list) {
+          const li = document.querySelector(`[data-job-id="${job.job_id}"]`);
+          if (li && (job.status === 'running' || job.status !== 'pending')) {
+            const r2 = await api('/api/jobs/' + job.job_id);
+            const detail = await r2.json();
+            const pre = li.querySelector('.job-logs');
+            if (pre) pre.textContent = detail.logs || detail.error || '';
+          }
+        }
+      } catch (_) {}
+    }
+
+    jobsList.addEventListener('click', (e) => {
+      const header = e.target.closest('.job-header');
+      if (!header) return;
+      const item = header.closest('.job-item');
+      const pre = item?.querySelector('.job-logs');
+      if (pre) pre.style.display = pre.style.display === 'none' ? 'block' : 'none';
+    });
+
+    btnValidate.addEventListener('click', doValidate);
+    btnCompile.addEventListener('click', () => startJob('compile', {}));
+    btnUpload.addEventListener('click', () => startJob('upload', { device: deviceEl.value.trim() || undefined }));
+
+    refreshJobs();
+  </script>
+</body>
+</html>

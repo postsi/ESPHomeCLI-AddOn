@@ -1,0 +1,53 @@
+# Build and push ESPHomeCLI AddOn Docker image to ghcr.io
+# Runs on push to main and on version tags (v*).
+name: Build and push addon image
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'esphomecli-addon/**'
+      - '.github/workflows/build-addon.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get addon version
+        id: version
+        run: |
+          V=$(grep -E '^version:\s*"' esphomecli-addon/config.yaml | sed -n 's/.*"\([^"]*\)".*/\1/p')
+          echo "version=${V:-1.0.0}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ./esphomecli-addon
+          file: ./esphomecli-addon/Dockerfile
+          build-args: |
+            BUILD_FROM=ghcr.io/esphome/esphome:2024.6.0b2
+          platforms: linux/amd64,linux/aarch64
+          push: true
+          tags: |
+            ghcr.io/postsi/esphomecli-addon:${{ steps.version.outputs.version }}
+            ghcr.io/postsi/esphomecli-addon:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2] – 2025-02-11
+
+### Added
+
+- Request logging: every request logs method, path, and Ingress-related headers to addon log.
+- Startup log: DATA_DIR and UI routes.
+- Catch-all GET handler: serve UI for any unhandled path and log the path (aids 404 diagnosis).
+
 ## [1.0.1] – 2025-02-11
 
 ### Fixed

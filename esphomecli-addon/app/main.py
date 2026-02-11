@@ -5,6 +5,7 @@ Pasted YAML only (no storage); temp files under DATA_DIR.
 """
 import asyncio
 import json
+import logging
 import os
 import subprocess
 import threading
@@ -16,6 +17,14 @@ from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+
+# Log to stdout so it appears in addon logs (HA: Add-on → Log)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+log = logging.getLogger(__name__)
 
 # Addon data dir (mapped volume)
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
@@ -30,6 +39,42 @@ jobs_lock = threading.Lock()
 ALLOWED_COMMANDS = {"config", "compile", "upload", "run", "clean"}
 
 app = FastAPI(title="ESPHome CLI API", version="1.0.0")
+
+
+@app.on_event("startup")
+async def startup():
+    log.info("ESPHome CLI addon starting; DATA_DIR=%s", DATA_DIR)
+    log.info("UI routes: GET / , GET /api/hassio_ingress/{path} , GET /{path} (catch-all)")
+
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log every request to aid diagnosis (path, headers from Ingress)."""
+    path = request.url.path
+    method = request.method
+    headers = dict(request.headers)
+    # Headers that Ingress / Supervisor might set (useful for 404 diagnosis)
+    ingress_related = {
+        k: headers.get(k)
+        for k in (
+            "x-ingress-path",
+            "x-forwarded-for",
+            "x-forwarded-host",
+            "x-forwarded-proto",
+            "x-forwarded-uri",
+            "x-request-uri",
+            "x-original-uri",
+        )
+        if headers.get(k)
+    }
+    log.info("Request: %s %s | ingress-related: %s", method, path, ingress_related or "none")
+    try:
+        response = await call_next(request)
+        log.info("Response: %s %s -> %s", method, path, response.status_code)
+        return response
+    except Exception as e:
+        log.exception("Request failed: %s %s -> %s", method, path, e)
+        raise
 
 
 # --- Options (addon config) ---
@@ -350,10 +395,20 @@ if STATIC_DIR.exists():
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
+    log.info("Serving UI at /")
     return HTMLResponse(INDEX_HTML)
 
 
 @app.get("/api/hassio_ingress/{rest:path}", response_class=HTMLResponse)
 async def ingress_ui(rest: str):
     """Serve UI when request comes through Ingress (path prefix from Supervisor)."""
+    log.info("Serving UI at /api/hassio_ingress/%s", rest)
+    return HTMLResponse(INDEX_HTML)
+
+
+# Catch-all for any other GET (log and serve UI so we can see what path was requested)
+@app.api_route("/{full_path:path}", methods=["GET"], response_class=HTMLResponse)
+async def catch_all_ui(request: Request, full_path: str):
+    """Serve UI for any unhandled GET (helps diagnose 404s)."""
+    log.warning("Catch-all GET for path: %r (full_path=%r) - serving UI", request.url.path, full_path)
     return HTMLResponse(INDEX_HTML)

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.7] – 2026-02-11
+
+### Fixed
+
+- 404 for `GET //`: serve UI directly in middleware for root paths (`//`, `/`, or empty) so the Ingress panel loads without relying on router matching.
+
 ## [1.0.6] – 2025-02-11
 
 ### Fixed

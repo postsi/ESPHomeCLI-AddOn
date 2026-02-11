@@ -40,6 +40,10 @@ ALLOWED_COMMANDS = {"config", "compile", "upload", "run", "clean"}
 
 app = FastAPI(title="ESPHome CLI API", version="1.0.0")
 
+# Load UI HTML once so middleware can serve it for root/// (Ingress sends GET //)
+STATIC_DIR = Path(__file__).parent / "static"
+INDEX_HTML = (STATIC_DIR / "index.html").read_text(encoding="utf-8") if (STATIC_DIR / "index.html").exists() else "<!DOCTYPE html><html><body><h1>UI not found</h1></body></html>"
+
 
 @app.on_event("startup")
 async def startup():
@@ -74,6 +78,10 @@ async def normalize_path_and_log(request: Request, call_next):
         if headers.get(k)
     }
     log.info("Request: %s %s | ingress-related: %s", method, path, ingress_related or "none")
+    # Ingress builds URL as http://addon:port/{path}; when path is "/" that becomes "//". Serve UI directly so router never sees "//".
+    if method == "GET" and path in ("//", "/", ""):
+        log.info("Serving UI for root path %r", path)
+        return HTMLResponse(INDEX_HTML)
     try:
         response = await call_next(request)
         log.info("Response: %s %s -> %s", method, path, response.status_code)
@@ -391,10 +399,7 @@ async def api_health():
 
 
 # --- Serve UI (Ingress) ---
-# Ingress proxies to addon with path like /api/hassio_ingress/<token>/ so we must serve UI there too.
-STATIC_DIR = Path(__file__).parent / "static"
-INDEX_HTML = (Path(__file__).parent / "static" / "index.html").read_text(encoding="utf-8")
-
+# STATIC_DIR and INDEX_HTML defined at top for middleware root/ // handling
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 

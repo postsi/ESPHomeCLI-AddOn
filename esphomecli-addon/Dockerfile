@@ -11,6 +11,6 @@ COPY app/ /app/
 
 # Addon data dir for temp files and options
 ENV DATA_DIR=/data
-EXPOSE 8099
+EXPOSE 8098
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8099"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8098"]

@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.3] – 2025-02-11
+
+### Fixed
+
+- Port 8099 conflict: esphome-hassio base image already uses 8099. Addon now uses port **8098** (ingress_port and uvicorn).
+
 ## [1.0.2] – 2025-02-11
 
 ### Added

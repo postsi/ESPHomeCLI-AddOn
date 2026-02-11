@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1] – 2025-02-11
+
+### Fixed
+
+- Ingress 404: serve UI at `/api/hassio_ingress/...` path so the sidebar panel loads.
+- Frontend API URLs now relative to panel URL so API calls work when loaded via Ingress.
+- Docker build: use `ghcr.io/esphome/esphome-hassio` base and `uv pip install` (match official ESPHome addon).
+
 ## [1.0.0] – 2025-02-11
 
 ### Added

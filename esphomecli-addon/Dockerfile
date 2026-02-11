@@ -3,7 +3,9 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-RUN pip3 install --no-cache-dir fastapi uvicorn
+# Install FastAPI/uvicorn (--break-system-packages for Debian 12+ / PEP 668)
+RUN python3 -m pip install --no-cache-dir --break-system-packages fastapi uvicorn \
+    || python3 -m pip install --no-cache-dir fastapi uvicorn
 
 WORKDIR /app
 COPY app/ /app/

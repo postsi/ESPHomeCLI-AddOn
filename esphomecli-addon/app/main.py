@@ -13,6 +13,8 @@ import uuid
 from pathlib import Path
 from typing import Any, Optional
 
+from starlette.exceptions import NotFound
+
 from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -45,6 +47,16 @@ STATIC_DIR = Path(__file__).parent / "static"
 INDEX_HTML = (STATIC_DIR / "index.html").read_text(encoding="utf-8") if (STATIC_DIR / "index.html").exists() else "<!DOCTYPE html><html><body><h1>UI not found</h1></body></html>"
 
 
+@app.exception_handler(NotFound)
+async def custom_not_found(request: Request, exc: NotFound):
+    """If no route matched and path is root (e.g. GET // from Ingress), serve UI so panel loads."""
+    if request.method == "GET" and request.url.path in ("//", "/", ""):
+        log.info("NotFound fallback: serving UI for path %r", request.url.path)
+        return HTMLResponse(INDEX_HTML)
+    from starlette.responses import JSONResponse
+    return JSONResponse(status_code=404, content={"detail": "Not found"})
+
+
 @app.on_event("startup")
 async def startup():
     log.info("ESPHome CLI addon starting; DATA_DIR=%s", DATA_DIR)
@@ -54,16 +66,26 @@ async def startup():
 @app.middleware("http")
 async def normalize_path_and_log(request: Request, call_next):
     """Normalize path (e.g. // -> /) and log. Ingress can send // which 404s otherwise."""
-    path = request.url.path
+    method = request.method
+    raw_path = request.url.path
+    scope_path = request.scope.get("path", "<missing>")
+    is_root = method == "GET" and raw_path in ("//", "/", "")
+    # Log every request so we can see what actually reaches the app (path repr, bytes, scope)
+    log.info(
+        "DIAG %s raw_path=%r (len=%d) scope_path=%r is_root=%s",
+        method, raw_path, len(raw_path), scope_path, is_root,
+    )
+    if is_root:
+        log.info("Serving UI for root (raw_path=%r)", raw_path)
+        return HTMLResponse(INDEX_HTML)
+    path = raw_path
     while "//" in path:
         path = path.replace("//", "/")
-    if path != request.url.path:
+    if path != raw_path:
         request.scope["path"] = path
         request.scope["raw_path"] = path.encode("utf-8")
     path = request.scope["path"]
-    method = request.method
     headers = dict(request.headers)
-    # Headers that Ingress / Supervisor might set (useful for 404 diagnosis)
     ingress_related = {
         k: headers.get(k)
         for k in (
@@ -78,10 +100,6 @@ async def normalize_path_and_log(request: Request, call_next):
         if headers.get(k)
     }
     log.info("Request: %s %s | ingress-related: %s", method, path, ingress_related or "none")
-    # Ingress builds URL as http://addon:port/{path}; when path is "/" that becomes "//". Serve UI directly so router never sees "//".
-    if method == "GET" and path in ("//", "/", ""):
-        log.info("Serving UI for root path %r", path)
-        return HTMLResponse(INDEX_HTML)
     try:
         response = await call_next(request)
         log.info("Response: %s %s -> %s", method, path, response.status_code)

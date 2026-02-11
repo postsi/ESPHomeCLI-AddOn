@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.8] – 2026-02-11
+
+### Added
+
+- Request diagnostic logging: every request logs `raw_path`, `scope_path`, and `is_root` so we can see exactly what Ingress sends and fix 404 from evidence.
+
+### Fixed
+
+- 404 fallback: `NotFound` exception handler serves UI for root paths; middleware short-circuits for `GET //`, `/`, or empty.
+
 ## [1.0.7] – 2026-02-11
 
 ### Fixed

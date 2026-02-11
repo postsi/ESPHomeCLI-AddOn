@@ -3,7 +3,7 @@
 # version: required by HA; Supervisor uses it as the Docker image tag (e.g. image:1.0.0)
 name: ESPHome CLI
 description: Expose ESPHome CLI through a web API. Validate, compile, and flash from pasted YAML or from other addons/integrations. Jobs run asynchronously with a sidebar UI.
-version: "1.0.7"
+version: "1.0.8"
 slug: esphomecli-addon
 url: https://github.com/postsi/ESPHomeCLI-AddOn
 arch:

@@ -50,6 +50,11 @@ Base URL when using the addon: the addon is reached via Ingress (same origin as 
 
 Flash target (`device`) is always provided by the caller (IP or serial port).
 
+## Troubleshooting
+
+- **"Unable to access the API, forbidden" in addon log**  
+  This line comes from the **base image** (esphome-hassio), which starts NGINX at boot. When the addon runs our custom server instead of the ESPHome dashboard, that check can fail and log the message. You can ignore it; the addon still works. If you see 403 when opening the panel in the browser, check HA’s `trusted_proxies` and that you’re logged in.
+
 ## Repository structure
 
 ```

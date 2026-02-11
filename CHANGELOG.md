@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.6] – 2025-02-11
+
+### Fixed
+
+- 404 for `GET //`: add explicit route for `//` (Ingress sends double slash; path normalization in middleware was not enough for router).
+
 ## [1.0.5] – 2025-02-11
 
 ### Fixed

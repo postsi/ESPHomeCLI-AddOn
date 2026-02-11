@@ -405,6 +405,13 @@ async def root():
     return HTMLResponse(INDEX_HTML)
 
 
+# Ingress often sends GET // (double slash); FastAPI matches path exactly so add explicit route
+@app.get("//", response_class=HTMLResponse)
+async def root_double_slash():
+    log.info("Serving UI at //")
+    return HTMLResponse(INDEX_HTML)
+
+
 @app.get("/api/hassio_ingress/{rest:path}", response_class=HTMLResponse)
 async def ingress_ui(rest: str):
     """Serve UI when request comes through Ingress (path prefix from Supervisor)."""

@@ -173,7 +173,10 @@
     const emptyJobs = document.getElementById('empty-jobs');
 
     function api(path, options = {}) {
-      const url = path.startsWith('/') ? path : '/' + path;
+      // Use current path as base so API calls work when loaded via Ingress (e.g. /api/hassio_ingress/xxx/)
+      const base = window.location.pathname.replace(/\/$/, '') || '';
+      const p = path.startsWith('/') ? path.slice(1) : path;
+      const url = base + '/' + p;
       return fetch(url, {
         ...options,
         headers: {

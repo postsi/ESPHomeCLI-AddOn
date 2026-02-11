@@ -340,12 +340,20 @@ async def api_health():
 
 
 # --- Serve UI (Ingress) ---
+# Ingress proxies to addon with path like /api/hassio_ingress/<token>/ so we must serve UI there too.
 STATIC_DIR = Path(__file__).parent / "static"
+INDEX_HTML = (Path(__file__).parent / "static" / "index.html").read_text(encoding="utf-8")
+
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    html = (Path(__file__).parent / "static" / "index.html").read_text(encoding="utf-8")
-    return HTMLResponse(html)
+    return HTMLResponse(INDEX_HTML)
+
+
+@app.get("/api/hassio_ingress/{rest:path}", response_class=HTMLResponse)
+async def ingress_ui(rest: str):
+    """Serve UI when request comes through Ingress (path prefix from Supervisor)."""
+    return HTMLResponse(INDEX_HTML)

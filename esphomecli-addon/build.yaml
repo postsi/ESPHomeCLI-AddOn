@@ -1,9 +1,9 @@
-# Build from ESPHome image (has esphome CLI + Python)
+# Same base as the official ESPHome addon (esphome/home-assistant-addon).
+# ghcr.io/esphome/esphome-hassio is the image that addon uses; it has esphome + uv.
 # https://developers.home-assistant.io/docs/add-ons/build
-# Pin a specific ESPHome version; update when needed.
 build_from:
-  amd64: ghcr.io/esphome/esphome:2024.6.0b2
-  aarch64: ghcr.io/esphome/esphome:2024.6.0b2
-  armv7: ghcr.io/esphome/esphome:2024.6.0b2
-  armhf: ghcr.io/esphome/esphome:2024.6.0b2
-  i386: ghcr.io/esphome/esphome:2024.6.0b2
+  amd64: ghcr.io/esphome/esphome-hassio:2026.1.5
+  aarch64: ghcr.io/esphome/esphome-hassio:2026.1.5
+  armv7: ghcr.io/esphome/esphome-hassio:2026.1.5
+  armhf: ghcr.io/esphome/esphome-hassio:2026.1.5
+  i386: ghcr.io/esphome/esphome-hassio:2026.1.5

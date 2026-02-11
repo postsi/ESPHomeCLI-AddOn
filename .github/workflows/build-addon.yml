@@ -43,7 +43,7 @@ jobs:
           context: ./esphomecli-addon
           file: ./esphomecli-addon/Dockerfile
           build-args: |
-            BUILD_FROM=ghcr.io/esphome/esphome:2024.6.0b2
+            BUILD_FROM=ghcr.io/esphome/esphome-hassio:2026.1.5
           platforms: linux/amd64,linux/aarch64
           push: true
           tags: |

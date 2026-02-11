@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4] – 2025-02-11
+
+### Fixed
+
+- Port binding: runner finds an available port at startup. Tries Supervisor API (when `ingress_port: 0`) then first free port in 9080–9099. Avoids conflict with esphome-hassio base services. Added `run_server.py` and `ingress_port: 0`, `hassio_api: true`.
+
 ## [1.0.3] – 2025-02-11
 
 ### Fixed

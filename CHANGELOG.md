@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.5] – 2025-02-11
+
+### Fixed
+
+- Ingress 404 for `GET //`: normalize path in middleware (collapse `//` to `/`) so root route matches.
+
 ## [1.0.4] – 2025-02-11
 
 ### Fixed

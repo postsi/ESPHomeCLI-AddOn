@@ -48,9 +48,15 @@ async def startup():
 
 
 @app.middleware("http")
-async def log_requests(request: Request, call_next):
-    """Log every request to aid diagnosis (path, headers from Ingress)."""
+async def normalize_path_and_log(request: Request, call_next):
+    """Normalize path (e.g. // -> /) and log. Ingress can send // which 404s otherwise."""
     path = request.url.path
+    while "//" in path:
+        path = path.replace("//", "/")
+    if path != request.url.path:
+        request.scope["path"] = path
+        request.scope["raw_path"] = path.encode("utf-8")
+    path = request.scope["path"]
     method = request.method
     headers = dict(request.headers)
     # Headers that Ingress / Supervisor might set (useful for 404 diagnosis)
